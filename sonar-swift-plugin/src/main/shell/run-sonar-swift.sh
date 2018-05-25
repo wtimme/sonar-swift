@@ -243,6 +243,18 @@ if [ -z "$appConfiguration" -o "$appConfiguration" = " " ]; then
 	appConfiguration="Debug"
 fi
 
+# Determine the configuration file to use with SwiftLint
+swiftlintConfig='.swiftlint.yml'
+
+customSwiftlintConfig=''; readParameter customSwiftlintConfig 'sonar.swift.swiftlint.config'
+if [ "$customSwiftlintConfig" = "" ]; then
+	# Use the default config.
+	:
+elif [ ! -f $customSwiftlintConfig ]; then
+	echo "WARNING - sonar.swift.swiftlint.config parameter points to a file that does not exist. You must specify the path relative to your working directory."
+else
+	swiftlintConfig=$customSwiftlintConfig
+fi
 
 
 if [ "$vflag" = "on" ]; then
@@ -341,10 +353,13 @@ if [ "$swiftlint" = "on" ]; then
 		# Build the --include flags
 		currentDirectory=${PWD##*/}
 		echo "$srcDirs" | sed -n 1'p' | tr ',' '\n' > tmpFileRunSonarSh
+
+		[[ $swiftlintConfig != '' ]] && configParameter="--config $swiftlintConfig" || configParameter=''
+
 		while read word; do
 
 			# Run SwiftLint command
-		    $SWIFTLINT_CMD lint --path "$word" > sonar-reports/"$(echo $word | sed 's/\//_/g')"-swiftlint.txt
+		    $SWIFTLINT_CMD lint $configParameter --path $word > sonar-reports/$(echo $word | sed 's/\//_/g')-swiftlint.txt
 
 		done < tmpFileRunSonarSh
 		rm -rf tmpFileRunSonarSh
