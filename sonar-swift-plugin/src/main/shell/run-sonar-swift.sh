@@ -256,6 +256,8 @@ else
 	swiftlintConfig=$customSwiftlintConfig
 fi
 
+# If the SwiftLint configuration file was available, use the absolute path
+[ "$swiftlintConfig" != "" ] && [ -f $swiftlintConfig ] && swiftlintConfig=$(pwd)/$swiftlintConfig || swiftlintConfig=''
 
 if [ "$vflag" = "on" ]; then
  	echo "Xcode project file is: $projectFile"
